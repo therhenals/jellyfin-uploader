@@ -24,19 +24,23 @@ app.use(bodyParser.json())
 // Db init
 const adapter = new FileSync('./api/db.json')
 const db = low(adapter)
-db.read()
-const config = db.get('config').value()
 
-if (config.completed === 'true') {
+const getConfig = () => {
+  db.read()
+  return db.get('config').value()
+}
+
+if (getConfig().completed === 'true') {
   // Bull
   const Queue = require('bull')
   const torrentQueue = new Queue(
     'download and upload torrent',
-    config.redis_server
+    getConfig().redis_server
   )
 
   torrentQueue.process(async (job, done) => {
     // Get torrent of db
+    db.read()
     let torrentDb = db
       .get('torrents')
       .find({ hash: job.data.hash })
@@ -52,12 +56,16 @@ if (config.completed === 'true') {
         formData.append('rename', torrentDb.name)
         formData.append('category', 'Movies')
         formData.append('autoTMM', 'true')
-        await axios.post(`${config.qbt_server}/api/v2/torrents/add`, formData, {
-          headers: {
-            Cookie: authRes['set-cookie'][0],
-            ...formData.getHeaders()
+        await axios.post(
+          `${getConfig().qbt_server}/api/v2/torrents/add`,
+          formData,
+          {
+            headers: {
+              Cookie: authRes['set-cookie'][0],
+              ...formData.getHeaders()
+            }
           }
-        })
+        )
         updateTorrent(torrentDb.hash, { status: 'downloading' })
       }
     }
@@ -70,7 +78,7 @@ if (config.completed === 'true') {
             try {
               // Get torrent data
               const torrent = await axios.get(
-                `${config.qbt_server}/api/v2/torrents/properties`,
+                `${getConfig().qbt_server}/api/v2/torrents/properties`,
                 {
                   headers: {
                     Cookie: authRes['set-cookie'][0]
@@ -88,7 +96,7 @@ if (config.completed === 'true') {
               if (torrent.data.total_downloaded >= torrent.data.total_size) {
                 // Get torrent files
                 const files = await axios.get(
-                  `${config.qbt_server}/api/v2/torrents/files`,
+                  `${getConfig().qbt_server}/api/v2/torrents/files`,
                   {
                     params: {
                       hash: torrentDb.hash
@@ -105,7 +113,7 @@ if (config.completed === 'true') {
                 )
                 // Upload file
                 const upload = await fetch(
-                  `${config.rclone_server}/operations/movefile`,
+                  `${getConfig().rclone_server}/operations/movefile`,
                   {
                     method: 'POST',
                     body: JSON.stringify({
@@ -144,34 +152,40 @@ if (config.completed === 'true') {
       return new Promise((resolve) => {
         const interval = setInterval(async () => {
           // Get job rclone data
-          const rcloneJob = await fetch(`${config.rclone_server}/job/status`, {
-            method: 'POST',
-            body: JSON.stringify({
-              jobid: torrentDb.jobid
-            }),
-            headers: { 'Content-Type': 'application/json' }
-          }).then((response) => response.json())
+          const rcloneJob = await fetch(
+            `${getConfig().rclone_server}/job/status`,
+            {
+              method: 'POST',
+              body: JSON.stringify({
+                jobid: torrentDb.jobid
+              }),
+              headers: { 'Content-Type': 'application/json' }
+            }
+          ).then((response) => response.json())
           console.log(rcloneJob)
           if (rcloneJob.finished) {
             // Auth qbt
             const authRes = await auth()
             // Delete torrent
-            await axios.get(`${config.qbt_server}/api/v2/torrents/delete`, {
-              params: {
-                hashes: torrentDb.hash,
-                deleteFiles: true
-              },
-              headers: {
-                Cookie: authRes['set-cookie'][0]
+            await axios.get(
+              `${getConfig().qbt_server}/api/v2/torrents/delete`,
+              {
+                params: {
+                  hashes: torrentDb.hash,
+                  deleteFiles: true
+                },
+                headers: {
+                  Cookie: authRes['set-cookie'][0]
+                }
               }
-            })
+            )
             // Update libratys jellyfin
             await axios.post(
-              `${config.jellyfin_server}/Library/Refresh`,
+              `${getConfig().jellyfin_server}/Library/Refresh`,
               null,
               {
                 params: {
-                  api_key: config.jellyfin_key
+                  api_key: getConfig().jellyfin_key
                 }
               }
             )
@@ -252,6 +266,7 @@ app.post('/config', (req, res) => {
 
 // get config
 app.get('/config', (_, res) => {
+  db.read()
   res.json(db.get('config').value())
 })
 
@@ -263,13 +278,16 @@ const updateTorrent = (hash, data) => {
 }
 
 const auth = async () => {
-  const result = await axios.get(`${config.qbt_server}/api/v2/auth/login`, {
-    params: {
-      username: config.qbt_user,
-      password: config.qbt_pass
-    },
-    withCredentials: true
-  })
+  const result = await axios.get(
+    `${getConfig().qbt_server}/api/v2/auth/login`,
+    {
+      params: {
+        username: getConfig().qbt_user,
+        password: getConfig().qbt_pass
+      },
+      withCredentials: true
+    }
+  )
   return result.headers
 }
 
