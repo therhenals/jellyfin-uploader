@@ -116,5 +116,9 @@ export default {
       eslint: true
     }
   },
-  serverMiddleware: ['~/api/index']
+  serverMiddleware: ['~/api/index'],
+  server: {
+    port: 3001, // default: 3000
+    host: '0.0.0.0' // default: localhost
+  }
 }
