@@ -20,7 +20,9 @@ db.defaults({
     qbt_pass: '',
     tmdb_key: '',
     tmdb_baseurl: '',
-    rclone_server: ''
+    rclone_server: '',
+    redis_server: '',
+    completed: 'false'
   }
 }).write()
 
@@ -120,5 +122,8 @@ export default {
   server: {
     port: 3001, // default: 3000
     host: '0.0.0.0' // default: localhost
+  },
+  router: {
+    middleware: ['config']
   }
 }

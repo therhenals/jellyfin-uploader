@@ -88,6 +88,14 @@
           @input="$v.config.rclone_server.$touch()"
           @blur="$v.config.rclone_server.$touch()"
         ></v-text-field>
+        <v-text-field
+          v-model="config.redis_server"
+          outlined
+          label="REDIS server"
+          prepend-icon="mdi-cloud-upload"
+          @input="$v.config.redis_server.$touch()"
+          @blur="$v.config.redis_server.$touch()"
+        ></v-text-field>
       </v-card-text>
       <v-card-actions>
         <v-btn
@@ -131,7 +139,8 @@ export default Vue.extend({
         qbt_pass: '',
         tmdb_key: '',
         tmdb_baseurl: '',
-        rclone_server: ''
+        rclone_server: '',
+        redis_server: ''
       }
     }
   },
@@ -146,7 +155,8 @@ export default Vue.extend({
       qbt_pass: { required },
       tmdb_key: { required },
       tmdb_baseurl: { required },
-      rclone_server: { required }
+      rclone_server: { required },
+      redis_server: { required }
     }
   },
   methods: {
@@ -154,6 +164,7 @@ export default Vue.extend({
       await this.$axios.$post('/api/config', this.config)
       this.toast.show = true
       this.toast.message = 'Save ok'
+      window.location.reload(true)
     }
   }
 })
