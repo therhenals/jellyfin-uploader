@@ -24,7 +24,7 @@ app.use(bodyParser.json())
 // Db init
 const adapter = new FileSync('./api/db.json')
 const db = low(adapter)
-
+db.read()
 const config = db.get('config').value()
 
 if (config.completed === 'true') {
