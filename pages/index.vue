@@ -194,7 +194,7 @@ export default Vue.extend({
           }
         )
         // Add torrent to api
-        this.$axios.$post('./api/addTorrent', {
+        this.$axios.$post('/api/addTorrent', {
           torrent: this.urls,
           tmdb
         })
@@ -217,7 +217,7 @@ export default Vue.extend({
       }
     },
     async sync() {
-      const torrents = await this.$axios.$get('./api/getTorrents', {
+      const torrents = await this.$axios.$get('/api/getTorrents', {
         params: { type: this.type }
       })
       this.torrents = torrents

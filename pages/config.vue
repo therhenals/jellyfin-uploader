@@ -161,7 +161,7 @@ export default Vue.extend({
   },
   methods: {
     async save() {
-      await this.$axios.$post('./api/config', this.config)
+      await this.$axios.$post('/api/config', this.config)
       this.toast.show = true
       this.toast.message = 'Save ok'
       window.location.reload(true)

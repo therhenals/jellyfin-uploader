@@ -12,7 +12,7 @@ export const mutations: MutationTree<RootState> = {
 }
 export const actions: ActionTree<RootState, RootState> = {
   async nuxtServerInit({ commit }) {
-    const config = await this.$axios.$get('./api/config')
+    const config = await this.$axios.$get('/api/config')
     commit('CHANGE_CONFIG', config)
   }
 }

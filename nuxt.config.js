@@ -7,6 +7,8 @@ import FileSync from 'lowdb/adapters/FileSync'
 const adapter = new FileSync('./api/db.json')
 const db = low(adapter)
 
+require('dotenv').config()
+
 // defaults values db
 db.defaults({
   torrents: [],
@@ -77,7 +79,9 @@ export default {
    ** Axios module configuration
    ** See https://axios.nuxtjs.org/options
    */
-  axios: {},
+  axios: {
+    baseURL: process.env.BASE_URL
+  },
   /*
    ** vuetify module configuration
    ** https://github.com/nuxt-community/vuetify-module
