@@ -46,7 +46,7 @@ if (getConfig().completed === 'true') {
       .find({ hash: job.data.hash })
       .value()
     // Auth qbt
-    const authRes = await auth()
+    const token = await auth()
     // Download
     const download = async () => {
       if (torrentDb.status === 'waiting') {
@@ -61,7 +61,7 @@ if (getConfig().completed === 'true') {
           formData,
           {
             headers: {
-              Cookie: authRes['set-cookie'][0],
+              Cookie: token,
               ...formData.getHeaders()
             }
           }
@@ -81,7 +81,7 @@ if (getConfig().completed === 'true') {
                 `${getConfig().qbt_server}/api/v2/torrents/properties`,
                 {
                   headers: {
-                    Cookie: authRes['set-cookie'][0]
+                    Cookie: token
                   },
                   params: {
                     hash: job.data.hash
@@ -102,7 +102,7 @@ if (getConfig().completed === 'true') {
                       hash: torrentDb.hash
                     },
                     headers: {
-                      Cookie: authRes['set-cookie'][0]
+                      Cookie: token
                     }
                   }
                 )
@@ -165,7 +165,7 @@ if (getConfig().completed === 'true') {
           console.log(rcloneJob)
           if (rcloneJob.finished) {
             // Auth qbt
-            const authRes = await auth()
+            const token = await auth()
             // Delete torrent
             await axios.get(
               `${getConfig().qbt_server}/api/v2/torrents/delete`,
@@ -175,7 +175,7 @@ if (getConfig().completed === 'true') {
                   deleteFiles: true
                 },
                 headers: {
-                  Cookie: authRes['set-cookie'][0]
+                  Cookie: token
                 }
               }
             )
@@ -200,8 +200,16 @@ if (getConfig().completed === 'true') {
     done()
   })
 
+  // Clean all torrent finished
+  app.get('/cleanFinished', (_, res) => {
+    db.get('torrents')
+      .remove((torrent) => torrent.status === 'finished')
+      .write()
+    res.send('Ok')
+  })
+
   // Clean queue
-  app.get('/clean', (_, res) => {
+  app.get('/cleanQueue', (_, res) => {
     torrentQueue.clean()
     res.send('Ok')
   })
@@ -288,7 +296,7 @@ const auth = async () => {
       withCredentials: true
     }
   )
-  return result.headers
+  return result.headers['set-cookie'][0]
 }
 
 export const path = '/api'

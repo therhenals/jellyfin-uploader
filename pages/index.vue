@@ -2,7 +2,23 @@
   <div>
     <v-card>
       <v-card-title primary-title>
-        Torrents
+        <span class="headline">Torrents</span>
+
+        <v-spacer></v-spacer>
+
+        <v-menu bottom left>
+          <template v-slot:activator="{ on }">
+            <v-btn icon v-on="on">
+              <v-icon>mdi-dots-vertical</v-icon>
+            </v-btn>
+          </template>
+
+          <v-list light>
+            <v-list-item @click="clean">
+              <v-list-item-title>Delete finished</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
       </v-card-title>
       <v-card-text>
         <!-- Add torrent dialog -->
@@ -221,6 +237,16 @@ export default Vue.extend({
         params: { type: this.type }
       })
       this.torrents = torrents
+    },
+    async clean() {
+      await this.$axios.$get('/api/cleanFinished')
+      this.sync()
+      // Show toast
+      this.toast = {
+        show: true,
+        message: 'Successfully delete',
+        color: 'success'
+      }
     }
   },
   head: {
