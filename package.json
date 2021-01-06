@@ -16,7 +16,7 @@
     "@nuxtjs/axios": "^5.3.6",
     "@nuxtjs/dotenv": "^1.4.0",
     "@nuxtjs/vuetify": "^1.11.2",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "bluebird": "^3.7.2",
     "body-parser": "^1.19.0",
     "bull": "^3.14.0",
